@@ -8,6 +8,11 @@ function WebGLUnion($container, width, height) {
   I.sphereRadius = 18; //球体半径
 
   I.init();
+
+  I.centerPoint = { //中心点
+    x: I.width / 2,
+    y: I.height / 2,
+  }
 }
 WebGLUnion.prototype.init = function () {
   var I = this;
@@ -17,6 +22,10 @@ WebGLUnion.prototype.init = function () {
 
   // 渲染器放入容器
   I.$container.append(I.renderer.domElement);
+
+  I.renderer.domElement.addEventListener("mousemove", function(e) {
+    I.mouseMove(e);
+  }, false);
 
   I.scene = new THREE.Scene();
   // 透视
@@ -45,7 +54,7 @@ WebGLUnion.prototype.init = function () {
 
   //聚光灯光源
   I.spotLight = new THREE.SpotLight('#ffffff', 6.5, 0, 270 / 180 * Math.PI); //ffffff
-  I.spotLight.position.set( 50, 50, -10 );
+  I.spotLight.position.set( 50, 50, -40 );
   I.scene.add(I.spotLight);
 
 
@@ -70,15 +79,27 @@ WebGLUnion.prototype.addSphere = function () { // 添加球
     heightSegments, // 球体纵截面上的上半部份面个数，最小2，默认6
   );
 
-  // 粒子
-  var material = new THREE.PointsMaterial({ // PointsMaterial
+  // // 粒子
+  // var material = new THREE.PointsMaterial({ // PointsMaterial
+  //   color: '#ffffff',
+  //   size: 2,
+  //   blending: THREE.AdditiveBlending,
+  //   map: I.createTexture(),
+  // });
+  // // material.alphaTest = 0.9;
+
+
+  var material = new THREE.PointsMaterial({
     color: '#ffffff',
-    size: 2,
-    map: I.createTexture(),
+    size: 3,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    map: I.createTexture()
   });
-  // material.alphaTest = 0.9;
+  material.alphaTest = 0.9;
 
   var points = new THREE.Points(geometry, material);
+  points.sortParticles = true;
   I.turnGroup.add(points);
 
   // 球的表面
@@ -165,9 +186,17 @@ WebGLUnion.prototype.createTexture = function () { //球体点的纹理
   // gradient.addColorStop(0.2, 'rgba(0, 255, 255, 1)');
   // gradient.addColorStop(0.4, 'rgba(20, 170, 140, 1)');
   // gradient.addColorStop(1, 'rgba(20, 190, 155, 0.3)');
-  gradient.addColorStop(0, '#158f82');
-  gradient.addColorStop(0.99, '#158f82');
-  gradient.addColorStop(1, 'rgba(0,0,0,0.9)');
+
+
+  // gradient.addColorStop(0, '#158f82');
+  // gradient.addColorStop(0.99, '#158f82');
+  // gradient.addColorStop(1, 'rgba(0,0,0,0.9)');
+
+
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, 'rgba(0,255,255,1)');
+  gradient.addColorStop(0.4, 'rgba(0,0,64,1)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
   context.fillStyle = gradient;
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -373,13 +402,13 @@ WebGLUnion.prototype.colorChange = function () {
 WebGLUnion.prototype.addLuminousPoints = function () {
   var I = this;
   I.colorChange();
-  I.luminousPoint1 = I.addLuminousPoint(I.luminousPoint1, -I.sphereRadius, 0, 0);
-  I.luminousPoint2 = I.addLuminousPoint(I.luminousPoint2, I.sphereRadius, 0, 0);
-  I.luminousPoint3 = I.addLuminousPoint(I.luminousPoint3, 0, 0, I.sphereRadius);
-  I.luminousPoint4 = I.addLuminousPoint(I.luminousPoint4, 0, 0, -I.sphereRadius);
+  I.luminousPoint1 = I.addLuminousPoint(I.luminousPoint1, -I.sphereRadius, 0, 0, 90);
+  I.luminousPoint2 = I.addLuminousPoint(I.luminousPoint2, I.sphereRadius, 0, 0, 90);
+  I.luminousPoint3 = I.addLuminousPoint(I.luminousPoint3, 0, 0, I.sphereRadius, 0);
+  I.luminousPoint4 = I.addLuminousPoint(I.luminousPoint4, 0, 0, -I.sphereRadius, 0);
 }
 
-WebGLUnion.prototype.addLuminousPoint = function (point, x, y, z) { // 在球上创建发光点
+WebGLUnion.prototype.addLuminousPoint = function (point, x, y, z, deg) { // 在球上创建发光点
   var I = this;
   if (point) {
     point.material.color.r = I.luminousPointsColor.r;
@@ -388,17 +417,30 @@ WebGLUnion.prototype.addLuminousPoint = function (point, x, y, z) { // 在球上
     return point;
   }
   else {
-    var geometry = new THREE.SphereGeometry(
-      0.7, //球体半径
-      30, // 球体横截面上的面个数，最小3，默认8
-      30, // 球体纵截面上的上半部份面个数，最小2，默认6
+    // var geometry = new THREE.SphereGeometry(
+    //   0.7, //球体半径
+    //   30, // 球体横截面上的面个数，最小3，默认8
+    //   30, // 球体纵截面上的上半部份面个数，最小2，默认6
+    // );
+    // //MeshLambertMaterial
+    // //MeshBasicMaterial
+    // var material = new THREE.MeshBasicMaterial({ color: '#000000' });//材质
+    // var mesh = new THREE.Mesh(geometry, material);
+    // mesh.position.set(x, y, z);
+    // I.turnGroup.add(mesh);
+    // return mesh;
+
+    let geometry = new THREE.CircleGeometry (
+      0.7,    // radius
+      30,   // segments(分段)
     );
-    //MeshLambertMaterial
-    //MeshBasicMaterial
-    var material = new THREE.MeshLambertMaterial({ color: '#000000' });//材质
-    var mesh = new THREE.Mesh(geometry, material);
+    let material = new THREE.MeshBasicMaterial( {side: THREE.DoubleSide} );
+    // material.wireframe = true;
+    
+    var mesh = new THREE.Mesh( geometry, material );
     mesh.position.set(x, y, z);
-    I.turnGroup.add(mesh);
+    mesh.rotation.y = I.toRadian(deg);
+    I.turnGroup.add( mesh );
     return mesh;
   }
 }
@@ -451,7 +493,7 @@ WebGLUnion.prototype.addBackPoints = function() { // 添加背景星际
   );
   var material = new THREE.PointsMaterial({
     color: '#ffffff',
-    size: 1,
+    size: 3,
     map: this.createTexture(),
   });
   material.alphaTest = 0.9;
@@ -465,4 +507,21 @@ WebGLUnion.prototype.addBackPoints = function() { // 添加背景星际
   var points = new THREE.Points(geometry, material);
   points.rotation.x = I.toRadian(90);
   this.backPointGroup.add(points);
+}
+
+WebGLUnion.prototype.distance = function(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+WebGLUnion.prototype.mouseMove = function(e) {
+  var I = this;
+  
+  var distance = I.distance(e.offsetX, e.offsetY, I.centerPoint.x, I.centerPoint.y);
+  var zoom = (I.width - distance * 2) / I.width * 30;
+
+
+  I.turnGroup.position.z = zoom;
+  I.turnGroupPoints.position.z = zoom;
+
+  I.turnGroup.position.y = -zoom / 3;
+  I.turnGroupPoints.position.y = -zoom / 3;
 }
