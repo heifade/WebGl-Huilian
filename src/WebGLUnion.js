@@ -79,6 +79,8 @@ WebGLUnion.prototype.addSphere = function () { // 添加球
     heightSegments, // 球体纵截面上的上半部份面个数，最小2，默认6
   );
 
+  // console.log(111, THREE.Sprite);
+
   // // 粒子
   // var material = new THREE.PointsMaterial({ // PointsMaterial
   //   color: '#ffffff',
@@ -94,6 +96,7 @@ WebGLUnion.prototype.addSphere = function () { // 添加球
     size: 3,
     transparent: true,
     blending: THREE.AdditiveBlending,
+    depthWrite: false,/*该属性决定了这个对象是否影响WebGL的深度缓存，将其设置为false，则各个粒子系统之间互不干涉*/
     map: I.createTexture()
   });
   material.alphaTest = 0.9;
@@ -139,23 +142,22 @@ WebGLUnion.prototype.animate = function () {
   var I = this;
   function run() {
     I.turnGroup.rotation.y += 0.006;
-    I.turnGroupPoints.rotation.y += 0.006;
     I.backPointGroup.rotation.y += 0.0003;
-    I.MeshPoint1.position.y = 20 * Math.cos(I.turnGroupPoints.rotation.y);
-    I.MeshPoint2.position.y = -20 * Math.sin(I.turnGroupPoints.rotation.y);
-    I.MeshPoint3.position.y = 20 * Math.sin(I.turnGroupPoints.rotation.y);
-    I.MeshPoint4.position.y = -20 * Math.cos(I.turnGroupPoints.rotation.y);
+    I.MeshPoint1.position.y = 20 * Math.cos(I.turnGroup.rotation.y);
+    I.MeshPoint2.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
+    I.MeshPoint3.position.y = 20 * Math.sin(I.turnGroup.rotation.y);
+    I.MeshPoint4.position.y = -20 * Math.cos(I.turnGroup.rotation.y);
 
-    I.MeshPoint5.position.y = 20 * Math.cos(I.turnGroupPoints.rotation.y);
-    I.MeshPoint6.position.y = -20 * Math.sin(I.turnGroupPoints.rotation.y);
-    I.MeshPoint7.position.y = 20 * Math.cos(I.turnGroupPoints.rotation.y);
-    I.MeshPoint8.position.y = -20 * Math.sin(I.turnGroupPoints.rotation.y);
+    I.MeshPoint5.position.y = 20 * Math.cos(I.turnGroup.rotation.y);
+    I.MeshPoint6.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
+    I.MeshPoint7.position.y = 20 * Math.cos(I.turnGroup.rotation.y);
+    I.MeshPoint8.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
 
-    I.MeshPoint9.position.y = 20 * Math.sin(I.turnGroupPoints.rotation.y);
-    I.MeshPoint10.position.y = -20 * Math.cos(I.turnGroupPoints.rotation.y);
-    I.MeshPoint11.position.y = 20 * Math.sin(I.turnGroupPoints.rotation.y);
-    I.MeshPoint12.position.y = -20 * Math.cos(I.turnGroupPoints.rotation.y);
-    I.MeshPoint13.position.y = -20 * Math.sin(I.turnGroupPoints.rotation.y);
+    I.MeshPoint9.position.y = 20 * Math.sin(I.turnGroup.rotation.y);
+    I.MeshPoint10.position.y = -20 * Math.cos(I.turnGroup.rotation.y);
+    I.MeshPoint11.position.y = 20 * Math.sin(I.turnGroup.rotation.y);
+    I.MeshPoint12.position.y = -20 * Math.cos(I.turnGroup.rotation.y);
+    I.MeshPoint13.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
 
     I.addLines(); // 球外转动的点连线
 
@@ -206,12 +208,8 @@ WebGLUnion.prototype.createTexture = function () { //球体点的纹理
 
   return texture;
 }
-
 WebGLUnion.prototype.addMovingPoints = function () {
   var I = this;
-  I.turnGroupPoints = new THREE.Object3D();
-  I.turnGroupPoints.position = { x: 0, y: 0, z: 0 };
-  I.scene.add(I.turnGroupPoints);
 
   I.MeshPoint1 = I.addMovingPoint(29, -10, 10, '#158f82');
   I.MeshPoint2 = I.addMovingPoint(20, -20, 0, '#158f82');
@@ -241,7 +239,7 @@ WebGLUnion.prototype.addMovingPoint = function (x, y, z, color) { // 添加球�
   var mesh = new THREE.Mesh(geometry, material);
 
   mesh.position.set(x, y, z);
-  I.turnGroupPoints.add(mesh);
+  I.turnGroup.add(mesh);
   return mesh;
 }
 WebGLUnion.prototype.addLines = function () {
@@ -299,11 +297,10 @@ WebGLUnion.prototype.addLine = function (line, point1, point2) {
       material, //材质
       THREE.LineStrip, //折线
     );
-    I.turnGroupPoints.add(line);
+    I.turnGroup.add(line);
     return line;
   }
 }
-
 WebGLUnion.prototype.colorChange = function () {
   var I = this;
   if (!I.luminousPointsColor) {
@@ -398,7 +395,6 @@ WebGLUnion.prototype.colorChange = function () {
   //   }
   // }
 }
-
 WebGLUnion.prototype.addLuminousPoints = function () {
   var I = this;
   I.colorChange();
@@ -407,7 +403,6 @@ WebGLUnion.prototype.addLuminousPoints = function () {
   I.luminousPoint3 = I.addLuminousPoint(I.luminousPoint3, 0, 0, I.sphereRadius, 0);
   I.luminousPoint4 = I.addLuminousPoint(I.luminousPoint4, 0, 0, -I.sphereRadius, 0);
 }
-
 WebGLUnion.prototype.addLuminousPoint = function (point, x, y, z, deg) { // 在球上创建发光点
   var I = this;
   if (point) {
@@ -444,7 +439,6 @@ WebGLUnion.prototype.addLuminousPoint = function (point, x, y, z, deg) { // 在�
     return mesh;
   }
 }
-
 WebGLUnion.prototype.addLuminousLines = function () {
   var I = this;
   I.luminousLine1 = I.addLine(I.luminousLine1, I.MeshPoint7, I.luminousPoint1);
@@ -480,11 +474,10 @@ WebGLUnion.prototype.addLuminousLines = function () {
     I.luminousLine4.visible = false;
   }
 }
-
 WebGLUnion.prototype.addBackPoints = function() { // 添加背景星际
   var I = this;
   var geometry = new THREE.TorusKnotGeometry (
-    150, //radius
+    180, //radius
     30, //tube 管子半径
     150, //radialSegments 
     12, //tubularSegments
@@ -508,20 +501,14 @@ WebGLUnion.prototype.addBackPoints = function() { // 添加背景星际
   points.rotation.x = I.toRadian(90);
   this.backPointGroup.add(points);
 }
-
 WebGLUnion.prototype.distance = function(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 WebGLUnion.prototype.mouseMove = function(e) {
   var I = this;
-  
   var distance = I.distance(e.offsetX, e.offsetY, I.centerPoint.x, I.centerPoint.y);
-  var zoom = (I.width - distance * 2) / I.width * 30;
-
+  var zoom = (I.width - distance * 2) / I.width * 15;
 
   I.turnGroup.position.z = zoom;
-  I.turnGroupPoints.position.z = zoom;
-
-  I.turnGroup.position.y = -zoom / 3;
-  I.turnGroupPoints.position.y = -zoom / 3;
+  I.turnGroup.position.y = -zoom / 3
 }

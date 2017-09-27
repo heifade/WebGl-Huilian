@@ -4,9 +4,13 @@
     <script src="lib/three.min.js"></script>
     <script src="src/WebGLUnion.js"></script>
     <style>
+      html, body {
+        padding:0;
+        margin:0;
+      }
       .webgl {
-        width: 1000px;
-        height: 500px;
+        width: 1600px;
+        height: 768px;
         margin: auto;
       }
     </style>
@@ -15,7 +19,7 @@
     <div class="webgl"></div>
     <script>
       $(document).ready(function () {
-        var webGL = new WebGLUnion($('.webgl'), 1000, 500);
+        var webGL = new WebGLUnion($('.webgl'), 1600, 768);
       });
     </script>
   </body>
