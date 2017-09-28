@@ -8,7 +8,7 @@ function WebGLUnion($container, width, height) {
 }
 WebGLUnion.prototype.init = function () {
   var I = this;
-  I.renderer = new THREE.WebGLRenderer({ antialias: true }); //抗据齿
+  I.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); //抗据齿
   I.renderer.setSize(I.width, I.height);
   I.renderer.setClearColor('#000000', 1.0);
 
@@ -51,7 +51,7 @@ WebGLUnion.prototype.init = function () {
 
   I.addSphere(); // 球
   I.addMovingPoints(); // 球外转动的点
-  I.addBackPoints(); // 添加背景星际
+  
 
   I.animate();
 }
@@ -121,7 +121,6 @@ WebGLUnion.prototype.animate = function () {
   var I = this;
   function run() {
     I.turnGroup.rotation.y += 0.006;
-    I.backPointGroup.rotation.y += 0.0003;
     I.MeshPoint1.position.y = 20 * Math.cos(I.turnGroup.rotation.y);
     I.MeshPoint2.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
     I.MeshPoint3.position.y = 20 * Math.sin(I.turnGroup.rotation.y);
@@ -393,33 +392,6 @@ WebGLUnion.prototype.addLuminousLines = function () {
     I.luminousLine4.visible = false;
   }
 }
-WebGLUnion.prototype.addBackPoints = function() { // 添加背景星际
-  var I = this;
-  var geometry = new THREE.TorusKnotGeometry (
-    180, //radius
-    30, //tube 管子半径
-    150, //radialSegments 
-    12, //tubularSegments
-    4,
-    3,
-  );
-  var material = new THREE.PointsMaterial({
-    color: '#ffffff',
-    size: 3,
-    map: this.createTexture(),
-  });
-  material.alphaTest = 0.9;
-
-  I.backPointGroup = new THREE.Object3D();
-  I.backPointGroup.position.x = 0;
-  I.backPointGroup.position.y = -30;
-  I.backPointGroup.position.z = 70;
-  I.scene.add(I.backPointGroup);
-
-  var points = new THREE.Points(geometry, material);
-  points.rotation.x = I.toRadian(90);
-  this.backPointGroup.add(points);
-}
 WebGLUnion.prototype.distance = function(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
@@ -441,6 +413,123 @@ WebGLUnion.prototype.resize = function(width, height) {
   }
   if(I.renderer) {
     I.renderer.setSize(I.width, I.height);
+  } 
+}
+
+function WebGLUnionBack($container, width, height) {
+  var I = this;
+  I.$container = $container;
+  I.resize(width, height);
+
+  I.init();
+}
+WebGLUnionBack.prototype.init = function() {
+  var I = this;
+  I.renderer = new THREE.WebGLRenderer({ antialias: true }); //抗据齿
+  I.renderer.setSize(I.width, I.height);
+  I.renderer.setClearColor('#000000', 1.0);
+
+  // 渲染器放入容器
+  I.$container.append(I.renderer.domElement);
+
+  I.scene = new THREE.Scene();
+  // 透视
+  I.camera = new THREE.PerspectiveCamera(
+    30, //视角(度)
+    I.width / I.height, //纵横比,即平面长高比
+    1, //物体近平面离摄像头的距离
+    150000 //物体远平面离摄像头的距离
+  );
+  // 摄像头位置
+  I.camera.position.x = 0;
+  I.camera.position.y = -30;
+  I.camera.position.z = 100;
+  // 摄像头上方向
+  I.camera.up.x = 0;
+  I.camera.up.y = 1;
+  I.camera.up.z = 0;
+  // 摄像头观察点
+  I.camera.lookAt({ x: 0, y: 0, z: 0 });
+  I.scene.add(I.camera);
+
+  I.addBackPoints(); // 添加背景星际
+  I.animate();
+}
+WebGLUnionBack.prototype.render = function () {
+  var I = this;
+  I.renderer.render(I.scene, I.camera);
+}
+WebGLUnionBack.prototype.animate = function () {
+  var I = this;
+  function run() {
+    I.backPointGroup.rotation.y += 0.0003;
+    I.render();
+    requestAnimationFrame(run);
   }
-  
+  run();
+}
+WebGLUnionBack.prototype.addBackPoints = function() { // 添加背景星际
+  var I = this;
+  var geometry = new THREE.TorusKnotGeometry (
+    180, //radius
+    30, //tube 管子半径
+    150, //radialSegments 
+    12, //tubularSegments
+    4,
+    3,
+  );
+  var material = new THREE.PointsMaterial({
+    color: '#ffffff',
+    size: 3,
+    map: I.createTexture(),
+  });
+  material.alphaTest = 0.9;
+
+  I.backPointGroup = new THREE.Object3D();
+  I.backPointGroup.position.x = 0;
+  I.backPointGroup.position.y = -30;
+  I.backPointGroup.position.z = 70;
+  I.scene.add(I.backPointGroup);
+
+  var points = new THREE.Points(geometry, material);
+  points.rotation.x = I.toRadian(90);
+  this.backPointGroup.add(points);
+}
+WebGLUnionBack.prototype.toRadian = function (deg) { //角度转弧度
+  var I = this;
+  return deg * Math.PI / 180;
+}
+WebGLUnionBack.prototype.createTexture = function () { //球体点的纹理
+  var I = this;
+  var canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  var context = canvas.getContext('2d');
+  var gradient = context.createRadialGradient(
+    canvas.width / 2, canvas.height / 2,
+    0,
+    canvas.width / 2, canvas.height / 2,
+    canvas.width / 2
+  );
+
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, 'rgba(0,255,255,1)');
+  gradient.addColorStop(0.4, 'rgba(0,0,64,1)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  var texture = new THREE.Texture(canvas);
+  texture.needsUpdate = true;
+
+  return texture;
+}
+WebGLUnionBack.prototype.resize = function(width, height) {
+  var I = this;
+  I.width = width;
+  I.height = height;
+  if(I.renderer) {
+    I.renderer.setSize(I.width, I.height);
+  } 
 }
