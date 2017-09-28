@@ -9,8 +9,6 @@
         margin:0;
       }
       .webgl {
-        width: 1600px;
-        height: 768px;
         margin: auto;
       }
     </style>
@@ -18,9 +16,18 @@
   <body>
     <div class="webgl"></div>
     <script>
+      var $divWegGl = $('.webgl');
+      var webGL;
       $(document).ready(function () {
-        var webGL = new WebGLUnion($('.webgl'), 1600, 768);
+        webGL = new WebGLUnion($divWegGl, document.body.clientWidth, document.body.clientHeight);
       });
+
+      $(window).resize(function(e){
+        var width = document.body.clientWidth;
+        var height = document.body.clientHeight;
+        webGL.resize(width, height);
+        $divWegGl.css('width', width).css('height', height);
+      })
     </script>
   </body>
 </html>

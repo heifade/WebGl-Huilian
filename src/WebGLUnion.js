@@ -1,18 +1,10 @@
 function WebGLUnion($container, width, height) {
   var I = this;
   I.$container = $container;
-
-  I.width = width;
-  I.height = height;
+  I.resize(width, height);
 
   I.sphereRadius = 18; //球体半径
-
   I.init();
-
-  I.centerPoint = { //中心点
-    x: I.width / 2,
-    y: I.height / 2,
-  }
 }
 WebGLUnion.prototype.init = function () {
   var I = this;
@@ -57,7 +49,6 @@ WebGLUnion.prototype.init = function () {
   I.spotLight.position.set( 50, 50, -40 );
   I.scene.add(I.spotLight);
 
-
   I.addSphere(); // 球
   I.addMovingPoints(); // 球外转动的点
   I.addBackPoints(); // 添加背景星际
@@ -67,7 +58,7 @@ WebGLUnion.prototype.init = function () {
 WebGLUnion.prototype.addSphere = function () { // 添加球
   var I = this;
   I.turnGroup = new THREE.Object3D();
-  I.turnGroup.position = { x: 0, y: 0, z: 0 };
+  I.turnGroup.position.set(0, 0, 0);
   I.scene.add(I.turnGroup);
 
   var widthSegments = 28;
@@ -78,18 +69,6 @@ WebGLUnion.prototype.addSphere = function () { // 添加球
     widthSegments, // 球体横截面上的面个数，最小3，默认8
     heightSegments, // 球体纵截面上的上半部份面个数，最小2，默认6
   );
-
-  // console.log(111, THREE.Sprite);
-
-  // // 粒子
-  // var material = new THREE.PointsMaterial({ // PointsMaterial
-  //   color: '#ffffff',
-  //   size: 2,
-  //   blending: THREE.AdditiveBlending,
-  //   map: I.createTexture(),
-  // });
-  // // material.alphaTest = 0.9;
-
 
   var material = new THREE.PointsMaterial({
     color: '#ffffff',
@@ -160,12 +139,8 @@ WebGLUnion.prototype.animate = function () {
     I.MeshPoint13.position.y = -20 * Math.sin(I.turnGroup.rotation.y);
 
     I.addLines(); // 球外转动的点连线
-
     I.addLuminousPoints(); // 球上的点
-
     I.addLuminousLines(); // 球上点与外面的点连线
-
-
 
     I.render();
     requestAnimationFrame(run);
@@ -184,16 +159,6 @@ WebGLUnion.prototype.createTexture = function () { //球体点的纹理
     canvas.width / 2, canvas.height / 2,
     canvas.width / 2
   );
-  // gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  // gradient.addColorStop(0.2, 'rgba(0, 255, 255, 1)');
-  // gradient.addColorStop(0.4, 'rgba(20, 170, 140, 1)');
-  // gradient.addColorStop(1, 'rgba(20, 190, 155, 0.3)');
-
-
-  // gradient.addColorStop(0, '#158f82');
-  // gradient.addColorStop(0.99, '#158f82');
-  // gradient.addColorStop(1, 'rgba(0,0,0,0.9)');
-
 
   gradient.addColorStop(0, 'rgba(255,255,255,1)');
   gradient.addColorStop(0.2, 'rgba(0,255,255,1)');
@@ -348,52 +313,6 @@ WebGLUnion.prototype.colorChange = function () {
       cc.add = 1;
     }
   }
-
-
-  
-  
-
-
-
-  // if (I.luminousPointsColor.ra > 0) {
-  //   I.luminousPointsColor.r += 0.01;
-  //   if (I.luminousPointsColor.r > 1) {
-  //     I.luminousPointsColor.ra = -1;
-  //   }
-  // }
-  // else if (I.luminousPointsColor.ra < 0) {
-  //   I.luminousPointsColor.r -= 0.01;
-  //   if (I.luminousPointsColor.r < 0) {
-  //     I.luminousPointsColor.ra = 0;
-  //     I.luminousPointsColor.ga = 1;
-  //   }
-  // }
-  // if (I.luminousPointsColor.ga > 0) {
-  //   I.luminousPointsColor.g += 0.01;
-  //   if (I.luminousPointsColor.g > 1) {
-  //     I.luminousPointsColor.ga = -1;
-  //   }
-  // }
-  // else if (I.luminousPointsColor.ga < 0) {
-  //   I.luminousPointsColor.g -= 0.01;
-  //   if (I.luminousPointsColor.g < 0) {
-  //     I.luminousPointsColor.ga = 0;
-  //     I.luminousPointsColor.ba = 1;
-  //   }
-  // }
-  // if (I.luminousPointsColor.ba > 0) {
-  //   I.luminousPointsColor.b += 0.01;
-  //   if (I.luminousPointsColor.b > 1) {
-  //     I.luminousPointsColor.ba = -1;
-  //   }
-  // }
-  // else if (I.luminousPointsColor.ba < 0) {
-  //   I.luminousPointsColor.b -= 0.01;
-  //   if (I.luminousPointsColor.b < 0) {
-  //     I.luminousPointsColor.ba = 0;
-  //     I.luminousPointsColor.ra = 1;
-  //   }
-  // }
 }
 WebGLUnion.prototype.addLuminousPoints = function () {
   var I = this;
@@ -511,4 +430,17 @@ WebGLUnion.prototype.mouseMove = function(e) {
 
   I.turnGroup.position.z = zoom;
   I.turnGroup.position.y = -zoom / 3
+}
+WebGLUnion.prototype.resize = function(width, height) {
+  var I = this;
+  I.width = width;
+  I.height = height;
+  I.centerPoint = { //中心点
+    x: I.width / 2,
+    y: I.height / 2,
+  }
+  if(I.renderer) {
+    I.renderer.setSize(I.width, I.height);
+  }
+  
 }
